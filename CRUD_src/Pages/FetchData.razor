@@ -1,0 +1,94 @@
+﻿@page "/fetchdata"
+
+<PageTitle>Musical instruments</PageTitle>
+
+@using CRUD_src.Data
+
+<h1>Musical Instruments</h1>
+
+<p>This component demonstrates fetching data from a service.</p>
+
+<button @onclick="Generate">Generate random instruments</button>
+
+<div>
+    <input id="typeInput" placeholder="Type" @bind=type />
+    <input id="productorInput" placeholder="Productor" @bind=productor />
+    <input id="modelInput" placeholder="Model" @bind=model />
+    <input id="materialInput" placeholder="Material" @bind=material />
+    <button @onclick="AddInstrument">Add</button>
+</div>
+
+@if (instrumentsService == null)
+{
+    <p><em>Loading...</em></p>
+}
+else
+{
+    <table class="table">
+        <thead>
+            <tr>
+                <th>Id</th>
+                <th>Type</th>
+                <th>Productor</th>
+                <th>Model</th>
+                <th>Material</th>
+            </tr>
+        </thead>
+        <tbody>
+            @foreach (var instrument in instrumentsService.GetAll())
+            {
+                <tr>
+                    <td>@instrument.Id</td>
+                    <td>@instrument.Type</td>
+                    <td>@instrument.Productor</td>
+                    <td>@instrument.Model</td>
+                    <td>@instrument.Material</td>
+                    <td>
+                        <button class="btn-primary" 
+                            @onclick="() => Delete(instrument.Id)">
+                            Delete
+                        </button>
+                    </td>
+                </tr>
+            }
+        </tbody>
+    </table>
+}
+
+@code{
+    private MusicalInstrumentService instrumentsService;
+    private string? type;
+    private string? productor;
+    private string? model;
+    private string? material;
+
+    protected override async Task OnInitializedAsync()
+    {
+        instrumentsService = new();
+    }
+
+    private void Delete(int id)
+    {        
+        instrumentsService.DeleteInstrument(id);
+    }
+
+    private void Generate()
+    {
+        instrumentsService = new();
+    }
+
+    private void AddInstrument()
+    {
+        if(type == null ||
+        productor == null ||
+        model == null ||
+        material == null)
+        {
+            return;
+        }
+        var maxId = instrumentsService.Instruments.MaxBy(i => i.Id);
+        var id = maxId != null ? maxId.Id + 1 : 1;
+        var newInstrument = new MusicalInstrument(id, type, productor, model, material);
+        instrumentsService.AddInstrument(newInstrument);
+    }
+}
