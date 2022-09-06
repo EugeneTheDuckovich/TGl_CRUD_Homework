@@ -1,0 +1,10 @@
+{
+  "version": 2,
+  "dgSpecHash": "kFByo8nbHsTsZQnh9f32DB0fqIu422mSdCffVClmEQXgR4Kr61zhcfjCw5HiGn0L6On8ZWDdafDR73as9HoPcg==",
+  "success": true,
+  "projectFilePath": "C:\\TGL\\TGl_CRUD_Homework\\CRUD_src\\CRUD_src.csproj",
+  "expectedPackageFiles": [
+    "C:\\Users\\38099\\.nuget\\packages\\bogus\\34.0.2\\bogus.34.0.2.nupkg.sha512"
+  ],
+  "logs": []
+}
