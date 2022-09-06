@@ -1,0 +1,132 @@
+﻿@page "/guitars"
+
+<PageTitle>Guitars</PageTitle>
+
+@using CRUD_src.Data
+@using Microsoft.EntityFrameworkCore
+
+<style>
+    .dropdown-content {
+        display: none;
+        position: absolute;
+        background-color: #f1f1f1;
+        min-width: 160px;
+        box-shadow: 0px 8px 16px 0px rgba(0,0,0,0.2);
+        z-index: 1;
+    }
+
+    .dropdown:hover .dropdown-content {
+        display: block;
+    }
+</style>
+
+<h1>Musical Instruments</h1>
+
+<p>This component demonstrates fetching data from a service.</p>
+
+<div>
+    <input id="productorInput" placeholder="Productor" @bind=productor />
+    <input id="modelInput" placeholder="Model" @bind=model />
+    <input id="materialInput" placeholder="Material" @bind=material />
+    <input id="numberOfStringsInput" placeholder="number of strings (6-8)" @bind=numberOfStrings/>
+    <button @onclick="AddInstrument">Add</button>
+</div>
+
+<table class="table">
+    <thead>
+        <tr>
+            <th>Id</th>
+            <th>Productor</th>
+            <th>Model</th>
+            <th>Material</th>
+            <th>Number of strings</th>
+            <th>Delete</th>
+        </tr>
+    </thead>
+    <tbody>
+    @using (var guitarsContext = new GuitarsContext())
+    {
+        foreach (var guitar in guitarsContext.Guitars.Include(g => g.StringsKit))
+        {
+            <tr>
+                <td>@guitar.Id</td>
+                <td>@guitar.Productor</td>
+                <td>@guitar.Model</td>
+                <td>@guitar.Material</td>
+                <td>
+                        <div class="dropdown">
+                            <button class="dropbtn">@guitar.StringsKit.AmountOfStrings strings</button>
+                            <div class="dropdown-content">
+                                <p>strings kit id: @guitar.StringsKit.Id</p>
+                                <p>producer: @guitar.StringsKit.Producer</p>
+                            </div>
+                        </div>
+                </td>
+                <td>
+                    <button class="btn-primary"
+                    @onclick="() => Delete(guitar.Id)">
+                        Delete
+                    </button>
+                </td>
+            </tr>
+        }
+    }
+    </tbody>
+</table>
+
+@code{
+    private string? productor;
+    private string? model;
+    private string? material;
+    private string? numberOfStrings;
+
+    private void Delete(int id)
+    {        
+        using (var guitarsContext = new GuitarsContext())
+        {
+            guitarsContext.Remove(guitarsContext.Guitars.First(g => g.Id == id));
+            guitarsContext.SaveChanges();
+        }
+    }
+
+    protected override async Task OnInitializedAsync()
+    {
+        using (var guitarsContext = new GuitarsContext())
+        {
+            guitarsContext.Initialize();
+        }
+    }
+
+    private void AddInstrument()
+    {
+        if (productor == null
+            || model == null
+            || material == null
+            || numberOfStrings == null)
+        {
+            return;
+        }
+        if (!(int.TryParse(numberOfStrings, out int intStringsNum) && (intStringsNum <= 8 && intStringsNum >= 6)))
+        {
+            return;
+        }
+
+        using (var guitarsContext = new GuitarsContext())
+        {
+            int maxId = 0;
+            if (guitarsContext.Guitars.Count() != 0) maxId = guitarsContext.Guitars.Max(i => i.Id);
+            var id = maxId + 1;
+            var newInstrument = 
+            new Guitar 
+            { 
+                Id = id, 
+                Productor = productor, 
+                Model = model, 
+                Material = material, 
+                StringsKit = guitarsContext.StringsKits.First(s => s.AmountOfStrings == intStringsNum)
+            };
+            guitarsContext.Guitars.Add(newInstrument);
+            guitarsContext.SaveChanges();
+        }
+    }
+}
