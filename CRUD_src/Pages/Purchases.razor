@@ -1,0 +1,101 @@
+﻿@page "/purchases"
+
+<PageTitle>Purchases</PageTitle>
+
+@using CRUD_src.Data
+@using Microsoft.EntityFrameworkCore
+
+<h1>Musical Instruments</h1>
+
+<p>This component demonstrates fetching data from a service.</p>
+
+<div>
+    <input id="userIdInput" placeholder="user id" @bind=userId />
+    <input id="guitarIdInput" placeholder="guitar id" @bind=guitarId />
+    <button @onclick="AddPurchase">Add</button>
+</div>
+
+<table class="table">
+    <thead>
+        <tr>
+            <th>User Name</th>
+            <th>User Balance</th>
+            <th>Guitar Productor</th>
+            <th>Guitar Model</th>
+            <th>Delete</th>
+        </tr>
+    </thead>
+    <tbody>
+    @using (var guitarsContext = new GuitarsContext())
+    {
+            //var guitar in guitarsContext.Guitars.Include(g => g.Buyers).ThenInclude(u => u.BankAccount)
+        foreach(var user in guitarsContext.Users.Include(u => u.Guitars).Include(u => u.BankAccount))
+        {
+            foreach (var guitar in user.Guitars)
+            {
+                <tr>
+                    <td>@user.Name</td>
+                    <td>@user.BankAccount.Balance</td>
+                    <td>@guitar.Productor</td>
+                    <td>@guitar.Model</td>
+                    <td>
+                        <button class="btn-primary"
+                    @onclick="() => Delete(user.Id,guitar.Id)">
+                            Delete
+                        </button>
+                    </td>
+                </tr>
+            }
+        }
+    }
+    </tbody>
+</table>
+
+@code{
+    private string? userId;
+    private string? guitarId;
+
+    protected override async Task OnInitializedAsync()
+    {
+        using (var guitarsContext = new GuitarsContext())
+        {
+            guitarsContext.Initialize();
+        }
+    }
+
+    private void Delete(int userId, int guitarId)
+    {        
+        using (var guitarsContext = new GuitarsContext())
+        {
+            var currentUser = guitarsContext.Users.Include(u => u.Guitars).First(u => u.Id == userId);            
+            currentUser.Guitars.Remove(guitarsContext.Guitars.First(g => g.Id == guitarId));
+            guitarsContext.SaveChanges();
+        }
+    }
+
+    private void AddPurchase()
+    {
+        if (userId == null
+            || guitarId == null)
+        {
+            return;
+        }
+
+        using (var guitarsContext = new GuitarsContext())
+        {
+            var isUserIdOk = int.TryParse(userId, out int intUserId)
+            && guitarsContext.Users.FirstOrDefault(u => u.Id == intUserId) != null;
+            var isguitarIdOk = int.TryParse(guitarId, out int intguitarId)
+            && guitarsContext.Users.FirstOrDefault(u => u.Id == intUserId) != null;
+            if (!(isUserIdOk || isguitarIdOk))
+            {
+                return;
+            }
+
+            var currentUser = guitarsContext.Users.Include(u => u.Guitars).First(u => u.Id == intUserId);
+            currentUser.Guitars.Add(guitarsContext.Guitars.First(g => g.Id == intguitarId));
+            guitarsContext.SaveChanges();
+        }
+        
+    }
+}
